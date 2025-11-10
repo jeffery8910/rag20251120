@@ -1,0 +1,7 @@
+{
+  "keywords": [
+    { "match": "課表", "reply": "本週課表請見：https://example.com/schedule" },
+    { "match": "報名", "reply": "報名表單：https://example.com/register" }
+  ]
+}
+

@@ -1,0 +1,22 @@
+{
+  "name": "RAG x LINE (Cloud-Only)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "npm i -g pnpm && pnpm -v || true",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.eol": "\n",
+        "editor.tabSize": 2
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  }
+}
+

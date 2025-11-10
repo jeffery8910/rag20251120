@@ -1,0 +1,28 @@
+name: Ingest on data changes
+
+on:
+  push:
+    paths:
+      - 'data/**'
+      - 'scripts/**'
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm i @google/generative-ai @qdrant/js-client-rest dotenv globby
+      - run: node --version
+      - name: Run ingest (ts-node via npx)
+        run: npx ts-node scripts/ingest-qdrant.ts
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          QDRANT_COLLECTION: workshop_rag_docs
+
