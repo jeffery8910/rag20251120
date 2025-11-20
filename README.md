@@ -7,7 +7,7 @@
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<YOUR_GITHUB_REPO_URL>&root-directory=cloud-app&project-name=rag-line-cloud-app&repository-name=rag-line-cloud-app&env=ADMIN_TOKEN,GEMINI_API_KEY,EMBED_MODEL,GEN_MODEL,VECTOR_BACKEND,PINECONE_API_KEY,PINECONE_INDEX,PINECONE_ENV,LINE_CHANNEL_SECRET,LINE_CHANNEL_ACCESS_TOKEN,TOPK,SCORE_THRESHOLD&envDescription=請依 docs%2F01-env.md 填寫&envLink=docs%2F01-env.md)
 
 **Render**  
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=<YOUR_GITHUB_REPO_URL>&dir=cloud-app)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/jeffery8910/rag20251120&dir=cloud-app)
 
 部署後將 LINE Webhook 設為：`https://<domain>/api/line-webhook`
 
