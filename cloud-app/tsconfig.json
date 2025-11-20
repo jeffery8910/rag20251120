@@ -24,7 +24,9 @@
     "jsx": "preserve",
     "incremental": true,
     "types": [
-      "node"
+      "node",
+      "react",
+      "react-dom"
     ],
     "plugins": [
       {

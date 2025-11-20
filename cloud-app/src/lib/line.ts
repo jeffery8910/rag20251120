@@ -7,14 +7,20 @@ export function verifyLineSignature(rawBody: string, signature: string) {
   catch { return false; }
 }
 
-export async function replyToLine(replyToken: string, text: string) {
+export type LineMessage = any; // 直接沿用 LINE Messaging API 結構
+
+export async function replyToLine(replyToken: string, textOrMessages: string | LineMessage[]) {
+  const messages: LineMessage[] = typeof textOrMessages === 'string'
+    ? [{ type: 'text', text: textOrMessages }]
+    : textOrMessages;
+
   const res = await fetch('https://api.line.me/v2/bot/message/reply', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`
     },
-    body: JSON.stringify({ replyToken, messages: [{ type: 'text', text }] })
+    body: JSON.stringify({ replyToken, messages })
   });
   if (!res.ok) {
     const t = await res.text();

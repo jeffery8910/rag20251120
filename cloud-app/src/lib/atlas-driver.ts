@@ -22,7 +22,7 @@ function colName(name: 'logs'|'conversations'|'config'): string {
   return process.env.MONGODB_COLLECTION_CONFIG || 'config';
 }
 
-// Config document shape (_id 為字串 'default')
+// Config document shape (_id usually 'default')
 type ConfigDoc = {
   _id: string;
   prompt?: string;
@@ -30,6 +30,8 @@ type ConfigDoc = {
   TOPK?: number;
   SCORE_THRESHOLD?: number;
   NUM_CANDIDATES?: number;
+  forwardToN8nUrl?: string;
+  forwardRule?: string;
 };
 
 // Config

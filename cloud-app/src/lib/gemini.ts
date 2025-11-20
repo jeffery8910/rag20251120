@@ -14,24 +14,35 @@ async function postJson(url: string, body: any) {
 }
 
 export async function embedText(text: string, taskType: 'RETRIEVAL_DOCUMENT'|'RETRIEVAL_QUERY'='RETRIEVAL_DOCUMENT') {
-  const model = process.env.EMBED_MODEL || 'gemini-embedding-001';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent`;
-  // use dedicated limiter channel for embeddings
+  const configured = process.env.EMBED_MODEL || 'gemini-embedding-001';
+  const alt = /^text-embedding-/.test(configured) ? 'gemini-embedding-001' : 'text-embedding-004';
   const dim = Number(process.env.EMBED_DIM || process.env.EMBEDDING_DIMENSIONS || '');
-  const body: any = { model: `models/${model}`, content: { parts: [{ text }] }, taskType };
-  // Only Gemini Embedding supports configurable output dimensionality
-  if (Number.isFinite(dim) && String(model).startsWith('gemini-embedding')) {
-    body.embedding_config = { output_dimensionality: dim };
+
+  async function embedOnce(model: string): Promise<number[]> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent`;
+    const body: any = { model: `models/${model}`, content: { parts: [{ text }] }, taskType };
+    if (Number.isFinite(dim) && /^text-embedding-/.test(String(model))) {
+      body.outputDimensionality = dim;
+    }
+    const channel = /^text-embedding-/.test(model) ? 'gemini_embed_te' : 'gemini_embed_ge';
+    const res = await limitedJsonPost(channel as any, url, { 'x-goog-api-key': String(getGeminiKey()) }, body);
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Gemini embed failed (${model}): ${res.status} ${t}`);
+    }
+    const data = await res.json();
+    const values = data?.embedding?.values;
+    if (!values) throw new Error('No embedding values');
+    return values as number[];
   }
-  const res = await limitedJsonPost('gemini_embed' as any, url, { 'x-goog-api-key': String(getGeminiKey()) }, body);
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`Gemini embed failed: ${res.status} ${t}`);
+
+  try {
+    return await embedOnce(configured);
+  } catch (e) {
+    // Fallback to the alternate model
+    try { return await embedOnce(alt); }
+    catch { throw e; }
   }
-  const data = await res.json();
-  const values = data?.embedding?.values;
-  if (!values) throw new Error('No embedding values');
-  return values as number[];
 }
 
 export async function generateWithContext(prompt: string) {

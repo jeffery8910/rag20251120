@@ -59,7 +59,7 @@ function getNumeric(name: string, def?: number) {
   return Number.isFinite(n) ? n : def;
 }
 
-export function getLimiter(name: 'gemini'|'gemini_embed'|'gemini_gen'|'qdrant'|'line'|'default') {
+export function getLimiter(name: 'gemini'|'gemini_embed'|'gemini_embed_te'|'gemini_embed_ge'|'gemini_gen'|'pinecone'|'line'|'default') {
   if (limiters.has(name)) return limiters.get(name)!;
   const prefix = name.toUpperCase();
   const rps = getNumeric(`${prefix}_RPS`);
@@ -73,7 +73,7 @@ export function getLimiter(name: 'gemini'|'gemini_embed'|'gemini_gen'|'qdrant'|'
 
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
-export async function limitedFetch(name: 'gemini'|'qdrant'|'line'|'default', url: string, init: RequestInit & { retry?: number } = {}) {
+export async function limitedFetch(name: 'gemini'|'pinecone'|'line'|'default', url: string, init: RequestInit & { retry?: number } = {}) {
   const limiter = getLimiter(name);
   const maxRetry = getNumeric('GLOBAL_RETRY_MAX', 4)!;
   const baseDelay = getNumeric('GLOBAL_RETRY_BASE_MS', 500)!;
@@ -95,7 +95,7 @@ export async function limitedFetch(name: 'gemini'|'qdrant'|'line'|'default', url
   }
 }
 
-export async function limitedJsonPost(name: 'gemini'|'qdrant'|'line'|'default', url: string, headers: Record<string,string>, body: any, attempt=0) {
+export async function limitedJsonPost(name: 'gemini'|'gemini_embed'|'gemini_embed_te'|'gemini_embed_ge'|'gemini_gen'|'pinecone'|'line'|'default', url: string, headers: Record<string,string>, body: any, attempt=0) {
   const res = await getLimiter(name).schedule(() => fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },

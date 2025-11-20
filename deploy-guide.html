@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>RAG 工作坊｜Gemini + Pinecone + LINE 快速部署</title>
+  <style>
+    :root {
+      --bg:#0f172a;--card:#111827;--accent:#22d3ee;--text:#e5e7eb;--muted:#94a3b8;
+      font-family:"JetBrains Mono","Segoe UI",system-ui;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(120% 120% at 10% 10%,#1e293b,#0b1224);}
+    main{max-width:1100px;margin:32px auto;padding:0 20px;color:var(--text);}
+    h1{display:flex;gap:12px;align-items:center;font-size:28px;margin:0 0 12px;}
+    section{background:var(--card);border:1px solid #1f2937;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+    .step{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:center;}
+    .badge{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#0ea5e9);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b1224;}
+    .code{background:#0b1224;border:1px solid #1f2937;border-radius:10px;padding:14px;font-size:13px;overflow:auto;}
+    .btn{background:var(--accent);color:#0b1224;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:10px;}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#1e293b;color:var(--muted);font-size:12px;}
+  </style>
+</head>
+<body>
+<main>
+  <h1>🚀 RAG 工作坊｜Gemini + Pinecone + LINE 快速部署</h1>
+
+  <section class="step">
+    <div class="badge">1</div>
+    <div>
+      <strong>建 Pinecone serverless index</strong><br>
+      <span class="tag">console.pinecone.io</span>
+      <ul>
+        <li>Name：<code>g-workshop</code>（示例）</li>
+        <li>Cloud/Region：AWS / <code>us-east-1</code></li>
+        <li>Dimension：<code>768</code>（對應 <code>text-embedding-004</code>）</li>
+        <li>Metric：cosine</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="badge">2</div>
+    <div>
+      <strong>準備環境變數（Gemini + Pinecone + LINE）</strong>
+      <div class="code" id="env">
+ADMIN_TOKEN=changeme
+GEMINI_API_KEY=your_gemini_key
+EMBED_MODEL=text-embedding-004
+GEN_MODEL=gemini-2.5-flash
+VECTOR_BACKEND=pinecone
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_INDEX=g-workshop
+PINECONE_ENV=us-east-1
+LINE_CHANNEL_SECRET=your_line_secret
+LINE_CHANNEL_ACCESS_TOKEN=your_line_token
+TOPK=6
+SCORE_THRESHOLD=0.35
+      </div>
+      <button class="btn" onclick="copyEnv()">複製 env</button>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="badge">3</div>
+    <div>
+      <strong>部署 cloud-app（擇一）</strong>
+      <div class="grid">
+        <div>
+          <h4>Vercel</h4>
+          <ol>
+            <li>匯入 GitHub 專案（根目錄即 cloud-app）。</li>
+            <li>Node 版本 20，填入上方 env。</li>
+            <li>部署後 Webhook：<code>https://&lt;app&gt;.vercel.app/api/line-webhook</code></li>
+          </ol>
+        </div>
+        <div>
+          <h4>Render</h4>
+          <ol>
+            <li>建立 Web Service，根目錄，Node 20。</li>
+            <li>貼上 env；保持 <code>startCommand</code>=<code>npm start</code>。</li>
+            <li>Webhook：<code>https://&lt;service&gt;.onrender.com/api/line-webhook</code></li>
+          </ol>
+        </div>
+      </div>
+      <p class="tag">完成後：用 LINE Developers 將 Webhook 指向部署網址。</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="badge">4</div>
+    <div>
+      <strong>/admin 驗收</strong>
+      <ol>
+        <li>登入 <code>/admin</code> 輸入 <code>ADMIN_TOKEN</code>。</li>
+        <li>上傳教材（chunkSize 800 / overlap 120），確認「插入數量」>0。</li>
+        <li>線上測試輸入「這份教材的三個重點？」應回覆含來源。</li>
+        <li>LINE 實測：問教材內外問題，外部問題應回「查無資料」。</li>
+      </ol>
+      <div class="grid">
+        <div class="code">GET /api/health?withDb=1</div>
+        <div class="code">PINECONE_API_KEY=... npx ts-node scripts/ingest-pinecone.ts ./data</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="badge">5</div>
+    <div>
+      <strong>/admin 內建互動模板</strong>
+      <p class="tag">在「測試／聊天」分頁，點右上六個按鈕可直接生成：</p>
+      <div class="grid">
+        <div class="code">生成摘要：200 字 + 3 重點 + 來源</div>
+        <div class="code">生成單選題：3 題 MCQ + 答案 + 理由</div>
+        <div class="code">生成條列：5 條筆記 + 頁碼</div>
+        <div class="code">生成建議：5 條下一步建議 + 頁碼</div>
+        <div class="code">生成表格：headers + rows + source</div>
+        <div class="code">生成時間線：事件／日期／描述／頁碼</div>
+      </div>
+      <p class="tag">不需複製貼上，直接點按鈕即可送出 RAG + LLM JSON，前端自動渲染對應視窗。</p>
+    </div>
+  </section>
+
+</main>
+<script>
+function copyEnv(){
+  const t=document.getElementById('env').innerText.trim();
+  navigator.clipboard.writeText(t).then(()=>alert('環境變數已複製'));
+}
+</script>
+</body>
+</html>

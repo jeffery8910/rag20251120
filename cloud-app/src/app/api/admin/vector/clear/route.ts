@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import * as qdr from '@/lib/qdrant';
-import { deleteAllDocs, atlasConfigured } from '@/lib/mongo';
+import { clearAll } from '@/lib/pinecone';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,14 +12,12 @@ function auth(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!auth(req)) return new Response('unauthorized', { status: 401 });
-  const backend = (process.env.VECTOR_BACKEND || 'qdrant').toLowerCase();
-  const hasQdrant = Boolean(process.env.QDRANT_URL && process.env.QDRANT_API_KEY);
-  if (backend === 'qdrant' && hasQdrant) {
-    await qdr.clearCollection();
-  } else if (atlasConfigured()) {
-    await deleteAllDocs();
-  } else {
-    return new Response('Vector store not configured (set QDRANT_URL/API_KEY or Atlas envs)', { status: 500 });
+  const backend = (process.env.VECTOR_BACKEND || 'pinecone').toLowerCase();
+  if (backend !== 'pinecone') {
+    return new Response('backend not supported', { status: 400 });
   }
-  return new Response(JSON.stringify({ cleared: true }), { headers: { 'content-type': 'application/json' } });
+  await clearAll();
+  return new Response(JSON.stringify({ cleared: true }), {
+    headers: { 'content-type': 'application/json' },
+  });
 }

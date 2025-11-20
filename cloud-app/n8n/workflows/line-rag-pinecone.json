@@ -1,0 +1,72 @@
+{
+  "name": "line-rag-pinecone",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "line-rag-pinecone"
+      },
+      "name": "LINE Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 200],
+      "webhookId": "line-rag-pinecone"
+    },
+    {
+      "parameters": {
+        "url": "https://<your-app>/api/test",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "bodyParametersJson": "{\"question\": \"={{$json[\"events\"][0][\"message\"][\"text\"]}}\"}",
+        "headerParametersJson": "{\"authorization\":\"Bearer {{ $env.ADMIN_TOKEN || 'REPLACE_ME' }}\"}"
+      },
+      "name": "Call cloud-app",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "jsonParameters": true,
+        "options": {},
+        "headerParametersJson": "{\"Authorization\":\"Bearer <LINE_CHANNEL_ACCESS_TOKEN>\",\"Content-Type\":\"application/json\"}",
+        "bodyParametersJson": "{\n  \"replyToken\": \"={{$json[\"events\"][0][\"replyToken\"]}}\",\n  \"messages\": [\n    {\"type\": \"text\", \"text\": \"={{$node[\\\"Call cloud-app\\\"].json[\\\"answer\\\"]}}\"}\n  ]\n}"
+      },
+      "name": "LINE Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [700, 200]
+    }
+  ],
+  "connections": {
+    "LINE Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call cloud-app",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call cloud-app": {
+      "main": [
+        [
+          {
+            "node": "LINE Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {}
+}
